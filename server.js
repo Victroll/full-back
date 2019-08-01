@@ -1,7 +1,24 @@
-import Express from 'express';
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
-const app = Express();
+// Routes
+const listRoutes = require('./routes/shopping-list');
+const userRoutes = require('./routes/user');
 
-app.get('/', (_, res) => res.send('Hello World!'));
+const app = express();
+
+const dbUrl = 'mongodb+srv://victroll:ohLEBLhW8tK7F8gi@cluster0-rmtji.mongodb.net/full-back?retryWrites=true&w=majority'
+
+mongoose.connect(dbUrl);
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error: '))
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+
+app.use('/list', listRoutes);
+app.use('/user', userRoutes);
 
 app.listen(3214, () => console.log('Init!!'));
