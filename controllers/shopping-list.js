@@ -1,5 +1,5 @@
 const ShoppingList = require('../models/shopping-list');
-const Product = require('../models/product');
+const { Product } = require('../models/product');
 
 exports.createShoppingList = (req, res) => {
   // Check all the data is in place
@@ -26,6 +26,33 @@ exports.createShoppingList = (req, res) => {
     });
   } else {
     return res.status(400).send('Name was empty');
+  }
+};
+
+exports.getShoppingList = (req, res) => {
+  // Check all the data is in place
+  if (req.params.name) {
+    ShoppingList.findOne(
+      {
+        name: req.params.name
+      },
+      (err, sl) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        if (!sl) {
+          return res
+            .status(404)
+            .send(`Shopping list ${req.params.name} does not exist`);
+        }
+        return res.send(
+          sl.products.map(({ name, amount }) => ({
+            name,
+            amount
+          }))
+        );
+      }
+    );
   }
 };
 
