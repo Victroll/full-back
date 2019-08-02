@@ -1,29 +1,42 @@
 const ShoppingList = require('../models/shopping-list');
 const { Product } = require('../models/product');
+const { verifyUser } = require('../controllers/user');
 
 exports.createShoppingList = (req, res) => {
   // Check all the data is in place
   if (req.body.name) {
-    let newProducts = [];
-    if (req.body.products && req.body.products.length) {
-      newProducts = req.body.products.map(
-        ({ name, amount }) =>
-          new Product({
-            name,
-            amount
-          })
-      );
+    if (req.headers.authorization) {
+      verifyUser(req.headers.authorization, (err1, user) => {
+        if (err1) {
+          return res.status(500).send(err1);
+        }
+        if (!user) {
+          return res.status(403).send('Unauthorized access');
+        }
+        let newProducts = [];
+        if (req.body.products && req.body.products.length) {
+          newProducts = JSON.parse(req.body.products).map(
+            ({ name, amount }) =>
+              new Product({
+                name,
+                amount
+              })
+          );
+        }
+        const newList = new ShoppingList({
+          name: req.body.name,
+          products: newProducts
+        });
+        newList.save((err2, list) => {
+          if (err2) {
+            return res.status(500).send(err);
+          }
+          return res.send(list._id);
+        });
+      });
+    } else {
+      return res.status(403).send('You must be logged in');
     }
-    const newList = new ShoppingList({
-      name: req.body.name,
-      products: newProducts
-    });
-    newList.save((err, list) => {
-      if (err) {
-        return res.status(500).send(err);
-      }
-      return res.send(list._id);
-    });
   } else {
     return res.status(400).send('Name was empty');
   }
@@ -32,27 +45,41 @@ exports.createShoppingList = (req, res) => {
 exports.getShoppingList = (req, res) => {
   // Check all the data is in place
   if (req.params.name) {
-    ShoppingList.findOne(
-      {
-        name: req.params.name
-      },
-      (err, sl) => {
-        if (err) {
-          return res.status(500).send(err);
+    if (req.headers.authorization) {
+      verifyUser(req.headers.authorization, (err1, user) => {
+        if (err1) {
+          return res.status(500).send(err1);
         }
-        if (!sl) {
-          return res
-            .status(404)
-            .send(`Shopping list ${req.params.name} does not exist`);
+        if (!user) {
+          return res.status(403).send('Unauthorized access');
         }
-        return res.send(
-          sl.products.map(({ name, amount }) => ({
-            name,
-            amount
-          }))
+        ShoppingList.findOne(
+          {
+            name: req.params.name
+          },
+          (err2, sl) => {
+            if (err2) {
+              return res.status(500).send(err2);
+            }
+            if (!sl) {
+              return res
+                .status(404)
+                .send(`Shopping list ${req.params.name} does not exist`);
+            }
+            return res.send(
+              sl.products.map(({ name, amount }) => ({
+                name,
+                amount
+              }))
+            );
+          }
         );
-      }
-    );
+      });
+    } else {
+      return res.status(403).send('You must be logged in');
+    }
+  } else {
+    return res.status(400).send('Name was empty');
   }
 };
 

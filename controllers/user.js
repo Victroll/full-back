@@ -1,3 +1,5 @@
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 
 exports.createUser = (req, res) => {
@@ -17,6 +19,11 @@ exports.createUser = (req, res) => {
   } else {
     res.status(400).send('Name or password are incorrect');
   }
+};
+
+exports.verifyUser = (token, cb) => {
+  const { userId } = jwt.verify(token, 'CHANGE_THIS');
+  User.findById(userId, cb);
 };
 
 exports.loginUser = (req, res) => {
@@ -40,7 +47,15 @@ exports.loginUser = (req, res) => {
           if (!isMatch) {
             return res.status(403).send('Wrong password');
           }
-          return res.send('Access granted');
+          const token = jwt.sign(
+            {
+              userId: user._id
+            },
+            'CHANGE_THIS'
+          );
+          return res.send({
+            token
+          });
         });
       }
     );
