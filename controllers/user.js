@@ -28,6 +28,7 @@ exports.verifyUser = (token, cb) => {
 
 exports.loginUser = (req, res) => {
   // Check all the data is in place
+  // Login using name and password
   if (req.body.name && req.body.password) {
     User.findOne(
       {
@@ -59,5 +60,20 @@ exports.loginUser = (req, res) => {
         });
       }
     );
+    // Login using token
+  } else if (req.body.userToken) {
+    this.verifyUser(req.body.userToken, (err, user) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      if (!user) {
+        return res.status(403).send('Wrong token');
+      }
+      if (user) {
+        return res.send({
+          userName: user.name
+        });
+      }
+    });
   }
 };
