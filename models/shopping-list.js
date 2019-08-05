@@ -18,6 +18,11 @@ const ShoppingListSchema = new Schema({
       msg: 'Shopping list already exists!'
     }
   },
+  owner: {
+    type: String,
+    required: true,
+    max: 100
+  },
   products: [ProductSchema]
 });
 

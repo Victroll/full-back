@@ -36,7 +36,7 @@ exports.loginUser = (req, res) => {
       },
       (err1, user) => {
         if (err1) {
-          return res.status(400).send(err1);
+          return res.status(500).send(err1);
         }
         if (!user) {
           return res.status(404).send("User doesn't exist");
