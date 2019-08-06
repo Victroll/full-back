@@ -124,33 +124,41 @@ exports.getShoppingList = (req, res) => {
 exports.deleteList = (req, res) => {
   if (req.params.name && req.query.owner) {
     if (req.headers.authorization) {
-      ShoppingList.deleteOne(
-        {
-          name: req.params.name,
-          owner: req.query.owner
-        },
-        err => {
-          if (err) {
-            return res.status(500).send(err);
-          }
-          ShoppingList.find({ owner: req.query.owner }, (err2, lists) => {
-            if (err2) {
-              return res.status(500).send(err2);
-            }
-            if (!lists.length) {
-              return res.send({});
-            }
-            const ret = {};
-            lists.forEach(({ name: listName, products }) => {
-              ret[listName] = products.map(({ name, amount }) => ({
-                name,
-                amount
-              }));
-            });
-            return res.send(ret);
-          });
+      verifyUser(req.headers.authorization, (err1, user) => {
+        if (err1) {
+          return res.status(500).send(err1);
         }
-      );
+        if (!user) {
+          return res.status(403).send('Unauthorized access');
+        }
+        ShoppingList.deleteOne(
+          {
+            name: req.params.name,
+            owner: req.query.owner
+          },
+          err => {
+            if (err) {
+              return res.status(500).send(err);
+            }
+            ShoppingList.find({ owner: req.query.owner }, (err2, lists) => {
+              if (err2) {
+                return res.status(500).send(err2);
+              }
+              if (!lists.length) {
+                return res.send({});
+              }
+              const ret = {};
+              lists.forEach(({ name: listName, products }) => {
+                ret[listName] = products.map(({ name, amount }) => ({
+                  name,
+                  amount
+                }));
+              });
+              return res.send(ret);
+            });
+          }
+        );
+      });
     } else {
       return res.status(403).send('You must be logged in');
     }
@@ -169,40 +177,48 @@ exports.setProducts = (req, res) => {
     req.body.products.length
   ) {
     if (req.headers.authorization) {
-      ShoppingList.findOne(
-        {
-          name: req.params.name,
-          owner: req.body.owner
-        },
-        (err1, sl) => {
-          if (err1) {
-            return res.status(500).send(err1);
-          }
-          if (!sl) {
-            return res
-              .status(404)
-              .send(`Shopping list ${req.params.name} does not exist`);
-          }
-          sl.update(
-            {
-              name: req.body.newName,
-              products: JSON.parse(req.body.products).map(
-                ({ name, amount }) =>
-                  new Product({
-                    name,
-                    amount
-                  })
-              )
-            },
-            err2 => {
-              if (err2) {
-                return res.status(500).send(err2);
-              }
-              return res.send('List updated correctly');
-            }
-          );
+      verifyUser(req.headers.authorization, (err1, user) => {
+        if (err1) {
+          return res.status(500).send(err1);
         }
-      );
+        if (!user) {
+          return res.status(403).send('Unauthorized access');
+        }
+        ShoppingList.findOne(
+          {
+            name: req.params.name,
+            owner: req.body.owner
+          },
+          (err2, sl) => {
+            if (err2) {
+              return res.status(500).send(err2);
+            }
+            if (!sl) {
+              return res
+                .status(404)
+                .send(`Shopping list ${req.params.name} does not exist`);
+            }
+            sl.update(
+              {
+                name: req.body.newName,
+                products: JSON.parse(req.body.products).map(
+                  ({ name, amount }) =>
+                    new Product({
+                      name,
+                      amount
+                    })
+                )
+              },
+              err2 => {
+                if (err2) {
+                  return res.status(500).send(err2);
+                }
+                return res.send('List updated correctly');
+              }
+            );
+          }
+        );
+      });
     } else {
       return res.status(403).send('You must be logged in');
     }

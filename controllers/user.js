@@ -26,6 +26,46 @@ exports.verifyUser = (token, cb) => {
   User.findById(userId, cb);
 };
 
+exports.changePassword = (req, res) => {
+  // Check all the data is in place
+  if (req.body.password) {
+    if (req.headers.authorization) {
+      this.verifyUser(req.headers.authorization, (err1, user1) => {
+        if (err1) {
+          return res.status(500).send(err1);
+        }
+        if (!user1) {
+          return res.status(403).send('Unauthorized access');
+        }
+        User.deleteOne(
+          {
+            name: user1.name
+          },
+          err2 => {
+            if (err2) {
+              return res.status(500).send(err2);
+            }
+            const newUser = new User({
+              name: user1.name,
+              password: req.body.password
+            });
+            newUser.save((err, user2) => {
+              if (!err) {
+                return res.send(user2._id);
+              }
+              return res.status(400).send(err);
+            });
+          }
+        );
+      });
+    } else {
+      return res.status(403).send('You must be logged in');
+    }
+  } else {
+    return res.status(400).send('One or more parameters are empty');
+  }
+};
+
 exports.loginUser = (req, res) => {
   // Check all the data is in place
   // Login using name and password
@@ -75,5 +115,7 @@ exports.loginUser = (req, res) => {
         });
       }
     });
+  } else {
+    return res.status(400).send('One or more parameters are empty');
   }
 };
