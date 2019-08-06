@@ -29,4 +29,4 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/list', listRoutes);
 app.use('/user', userRoutes);
 
-app.listen(3214, () => console.log('Init!!'));
+app.listen(process.env.PORT || 3214, () => console.log('Init!!'));
