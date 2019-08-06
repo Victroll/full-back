@@ -62,8 +62,11 @@ exports.getAllShoppingLists = (req, res) => {
             return res.send({});
           }
           const ret = {};
-          lists.forEach(({ name, products }) => {
-            ret[name] = products;
+          lists.forEach(({ name: listName, products }) => {
+            ret[listName] = products.map(({ name, amount }) => ({
+              name,
+              amount
+            }));
           });
           return res.send(ret);
         });
@@ -118,18 +121,18 @@ exports.getShoppingList = (req, res) => {
   }
 };
 
-exports.addProducts = (req, res) => {
+exports.setProducts = (req, res) => {
   // Check all the data is in place
   if (
     req.params.name &&
-    req.params.owner &&
+    req.body.owner &&
     req.body.products &&
     req.body.products.length
   ) {
     ShoppingList.findOne(
       {
         name: req.params.name,
-        owner: req.params.owner
+        owner: req.body.owner
       },
       (err1, sl) => {
         if (err1) {
