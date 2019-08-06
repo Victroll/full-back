@@ -126,6 +126,7 @@ exports.setProducts = (req, res) => {
   if (
     req.params.name &&
     req.body.owner &&
+    req.body.newName &&
     req.body.products &&
     req.body.products.length
   ) {
@@ -145,6 +146,7 @@ exports.setProducts = (req, res) => {
         }
         sl.update(
           {
+            name: req.body.newName,
             products: JSON.parse(req.body.products).map(
               ({ name, amount }) =>
                 new Product({
