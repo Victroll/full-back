@@ -1,0 +1,8 @@
+{
+  "extends": [
+    "@daosro/eslint-config"
+  ],
+  "rules": {
+    "no-undef": "off"
+  }
+}
