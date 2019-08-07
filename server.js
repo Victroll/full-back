@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 // Routes
 const listRoutes = require('./routes/shopping-list');
 const userRoutes = require('./routes/user');
+const expensesRoutes = require('./routes/expenses-shopping-list');
 
 const app = express();
 
@@ -28,5 +29,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/list', listRoutes);
 app.use('/user', userRoutes);
+app.use('/expenses', expensesRoutes);
 
 app.listen(process.env.PORT || 3214, () => console.log('Init!!'));
